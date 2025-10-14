@@ -11,6 +11,7 @@ app.use(bodyParser.json());
 const localUri = 'mongodb://localhost:27017/librarydb'; // replace 'library' with your DB name
 let BookModel = null;
 let serverInstance = null;
+const useDb = true;
 
 // Function to start server
 async function startServer(portNumber = process.env.PORT || 4000) {
@@ -39,7 +40,7 @@ async function startServer(portNumber = process.env.PORT || 4000) {
 // Stop server function
 async function stopServer() {
   if (serverInstance) serverInstance.close();
-  if (useDb) await mongoose.disconnect();
+  if (BookModel) await mongoose.disconnect();
 }
 
 // Health endpoint
@@ -126,10 +127,10 @@ module.exports = {
   startServer,
   stopServer,
   reset: async () => {
-    books = [];
-    nextId = 1;
-    if (useDb && BookModel) await BookModel.deleteMany({});
-  }
+  books = [];
+  nextId = 1;
+  if (BookModel) await BookModel.deleteMany({});
+}
 };
 
 // Start server if run directly
