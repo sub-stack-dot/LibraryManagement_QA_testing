@@ -1,0 +1,65 @@
+{
+  "info": {
+    "name": "Library API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Add Book",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Store created book id for later requests",
+              "if (pm.response.code === 201) {",
+              "  const json = pm.response.json();",
+              "  pm.collectionVariables.set('bookId', json.id);",
+              "  console.log('Saved bookId:', json.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"title\": \"PM Book\", \"author\": \"PM\" }"
+        },
+        "url": "http://localhost:4000/api/books"
+      },
+      "response": []
+    },
+    {
+      "name": "Borrow Book",
+      "event": [
+  {
+    "listen": "prerequest",
+    "script": {
+      "exec": [
+        "// Ensure bookId is available before sending request",
+        "pm.variables.set('bookId', pm.collectionVariables.get('bookId'));"
+      ],
+      "type": "text/javascript"
+    }
+  }
+],
+
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "http://localhost:4000/api/books/68ee22caf436a1894abe126d/borrow"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000" },
+    { "key": "bookId", "value": "" }
+  ]
+}
