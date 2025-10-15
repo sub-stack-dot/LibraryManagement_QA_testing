@@ -9,26 +9,55 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    services: {}
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
       - name: Install root deps
         run: npm ci
+
       - name: Install frontend deps
         run: npm run install:frontend
+
       - name: Build frontend
         run: npm run build:frontend
+
+      - name: Wait for MongoDB to be ready
+        run: |
+          until mongosh --host localhost --eval "db.runCommand({ ping: 1 })"; do
+            echo "Waiting for MongoDB to start..."
+            sleep 3
+          done
+
+      - name: Set Mongo URI
+        run: echo "MONGO_URI=mongodb://localhost:27017/testdb" >> $GITHUB_ENV
+
       - name: Run unit tests
         run: npm run test:unit
+
       - name: Start server
         run: |
           node backend/server.js &
-          sleep 2
+          sleep 5
+
       - name: Run Postman collection (Newman)
         run: npx newman run tests/postman/collection.json
+
       - name: Run Selenium tests
         run: node tests/selenium/run_selenium_tests.js
