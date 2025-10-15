@@ -1,18 +1,30 @@
 const request = require('supertest');
+const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+
+let mongoServer;
 const { app, startServer, stopServer, reset } = require('../../backend/server');
 
 let srv;
 
 beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+
+  // override localUri in server dynamically
+  process.env.MONGO_URI = uri;
+
   srv = await startServer(0);
-});
+}, 30000); // increase timeout if needed
 
 afterAll(async () => {
   await stopServer();
+  await mongoose.disconnect();
+  if (mongoServer) await mongoServer.stop();
 });
 
 beforeEach(async () => {
-  if (reset) await reset();
+  await reset();
 });
 
 describe('Library API', () => {

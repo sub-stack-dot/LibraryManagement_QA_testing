@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const localUri = 'mongodb://localhost:27017/librarydb'; // replace 'library' with your DB name
+const localUri = process.env.MONGO_URI || 'mongodb://localhost:27017/librarydb';
 let BookModel = null;
 let serverInstance = null;
 const useDb = true;
