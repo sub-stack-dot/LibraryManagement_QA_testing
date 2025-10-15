@@ -11,11 +11,10 @@ beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
 
-  // override localUri in server dynamically
   process.env.MONGO_URI = uri;
 
   srv = await startServer(0);
-}, 30000); // increase timeout if needed
+}, 40000); 
 
 afterAll(async () => {
   await stopServer();

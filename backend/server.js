@@ -7,8 +7,8 @@ const mongoose = require('mongoose');
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-
 const localUri = process.env.MONGO_URI || 'mongodb://localhost:27017/librarydb';
+
 let BookModel = null;
 let serverInstance = null;
 const useDb = true;

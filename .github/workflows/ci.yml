@@ -46,7 +46,7 @@ jobs:
           done
 
       - name: Set Mongo URI
-        run: echo "MONGO_URI=mongodb://localhost:27017/testdb" >> $GITHUB_ENV
+        run: echo "MONGO_URI=mongodb://localhost:27017/librarydb" >> $GITHUB_ENV
 
       - name: Run unit tests
         run: npm run test:unit
