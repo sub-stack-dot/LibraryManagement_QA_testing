@@ -5,7 +5,7 @@ const { Builder, By, until } = require('selenium-webdriver');
 const { expect } = require('chai');
 
 describe('Library Webpage Test', function() {
-  this.timeout(20000); // increase timeout for browser actions
+  this.timeout(20000); 
   let driver;
 
   before(async () => {

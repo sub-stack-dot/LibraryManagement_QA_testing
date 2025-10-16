@@ -10,17 +10,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      mongodb:
-        image: mongo:6.0
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -38,15 +27,13 @@ jobs:
       - name: Build frontend
         run: npm run build:frontend
 
-      - name: Wait for MongoDB to be ready
-        run: |
-          until mongosh --host localhost --eval "db.runCommand({ ping: 1 })"; do
-            echo "Waiting for MongoDB to start..."
-            sleep 3
-          done
-
-      - name: Set Mongo URI
-        run: echo "MONGO_URI=mongodb://localhost:27017/librarydb" >> $GITHUB_ENV
+      # SonarCloud analysis step
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.Sonar_Token }}
+          SONAR_PROJECT_KEY: library-management
+          SONAR_ORGANIZATION: sub-stack-dot
 
       - name: Run unit tests
         run: npm run test:unit
@@ -54,7 +41,7 @@ jobs:
       - name: Start server
         run: |
           node backend/server.js &
-          sleep 5
+          sleep 2
 
       - name: Run Postman collection (Newman)
         run: npx newman run tests/postman/collection.json

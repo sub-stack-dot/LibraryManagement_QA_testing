@@ -64,10 +64,31 @@ app.get('/api/books', async (req, res) => {
   res.json(books);
 });
 
-// Add a book
+// Simple function to escape HTML special characters
+const escapeHtml = (str) => {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+// Add a book (secured - input validation + XSS protection)
 app.post('/api/books', async (req, res) => {
-  const { title, author } = req.body;
-  if (!title) return res.status(400).json({ error: 'title required' });
+  let { title, author } = req.body;
+
+  // Validate types
+  if (typeof title !== 'string' || typeof author !== 'string') {
+    return res.status(400).json({ error: 'Invalid input format' });
+  }
+
+  // Trim and escape
+  title = escapeHtml(title.trim());
+  author = escapeHtml(author.trim() || 'unknown');
+
+  if (!title) return res.status(400).json({ error: 'Title cannot be empty' });
 
   if (BookModel) {
     const doc = await BookModel.create({ title, author });
@@ -79,59 +100,53 @@ app.post('/api/books', async (req, res) => {
     });
   }
 
-  const book = { id: String(nextId++), title, author: author || 'unknown', borrowed: false };
+  const book = { id: String(nextId++), title, author, borrowed: false };
   books.push(book);
   res.status(201).json(book);
 });
 
-// Borrow a book
+
+
+// Borrow a book (secured - validate ID and prevent injection)
 app.post('/api/books/:id/borrow', async (req, res) => {
   const id = req.params.id;
 
-  if (BookModel) {
-    const doc = await BookModel.findById(id);
-    if (!doc) return res.status(404).json({ error: 'not found' });
-    if (doc.borrowed) return res.status(400).json({ error: 'already borrowed' });
-
-    doc.borrowed = true;
-    await doc.save();
-    return res.json({
-      id: String(doc._id),
-      title: doc.title,
-      author: doc.author,
-      borrowed: doc.borrowed
-    });
+  //  Validate ID format to prevent NoSQL injection
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid book ID format' });
   }
 
+  if (BookModel) {
+    try {
+      const doc = await BookModel.findById(id);
+      if (!doc) return res.status(404).json({ error: 'Book not found' });
+      if (doc.borrowed) return res.status(400).json({ error: 'Book already borrowed' });
+
+      doc.borrowed = true;
+      await doc.save();
+
+      return res.json({
+        id: String(doc._id),
+        title: doc.title,
+        author: doc.author,
+        borrowed: doc.borrowed
+      });
+    } catch (err) {
+      console.error('Error borrowing book:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  // Fallback (in-memory)
   const book = books.find(b => b.id === id);
-  if (!book) return res.status(404).json({ error: 'not found' });
-  if (book.borrowed) return res.status(400).json({ error: 'already borrowed' });
+  if (!book) return res.status(404).json({ error: 'Book not found' });
+  if (book.borrowed) return res.status(400).json({ error: 'Book already borrowed' });
 
   book.borrowed = true;
   res.json(book);
 });
 
-// Serve frontend build if exists
-const frontendBuild = path.join(__dirname, '..', 'frontend', 'build');
-app.use(express.static(frontendBuild));
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) return res.status(404).json({ error: 'not found' });
-  res.sendFile(path.join(frontendBuild, 'index.html'), err => {
-    if (err) res.status(404).send('Not Found');
-  });
-});
-
-// Export modules for testing
-module.exports = {
-  app,
-  startServer,
-  stopServer,
-  reset: async () => {
-  books = [];
-  nextId = 1;
-  if (BookModel) await BookModel.deleteMany({});
-}
-};
 
 // Start server if run directly
 if (require.main === module) {

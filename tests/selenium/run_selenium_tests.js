@@ -9,7 +9,6 @@ async function run() {
   const baseUrl = `http://localhost:${port}`;
   const srv = server.app.listen(port);
   try {
-    // run both tests sequentially
     await addBookOnly(baseUrl);
     await addBookAndBorrow(baseUrl);
     console.log('Selenium tests passed');
