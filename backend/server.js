@@ -66,7 +66,7 @@ app.get('/api/books', async (req, res) => {
 
 // Simple function to escape HTML special characters
 const escapeHtml = (str) => {
-  if (!str) return '';
+  if (!str) {return ''};
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -88,7 +88,7 @@ app.post('/api/books', async (req, res) => {
   title = escapeHtml(title.trim());
   author = escapeHtml(author.trim() || 'unknown');
 
-  if (!title) return res.status(400).json({ error: 'Title cannot be empty' });
+  if (!title) {return res.status(400).json({ error: 'Title cannot be empty' })};
 
   if (BookModel) {
     const doc = await BookModel.create({ title, author });
@@ -138,8 +138,8 @@ app.post('/api/books/:id/borrow', async (req, res) => {
 
   // Fallback (in-memory)
   const book = books.find(b => b.id === id);
-  if (!book) return res.status(404).json({ error: 'Book not found' });
-  if (book.borrowed) return res.status(400).json({ error: 'Book already borrowed' });
+  if (!book) {return res.status(404).json({ error: 'Book not found' })};
+  if (book.borrowed) {return res.status(400).json({ error: 'Book already borrowed' })};
 
   book.borrowed = true;
   res.json(book);
