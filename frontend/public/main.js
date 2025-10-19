@@ -1,4 +1,5 @@
-const apiBase = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : '';
+const isLocalhost = ['localhost', '127.0.0.1'].includes(location.hostname);
+const apiBase = isLocalhost ? 'http://localhost:4000' : '';
 
 async function fetchBooks() {
   const res = await fetch(`${apiBase}/api/books`);
