@@ -105,14 +105,12 @@ app.post('/api/books', async (req, res) => {
   res.status(201).json(book);
 });
 
-
-
 // Borrow a book (secured - validate ID and prevent injection)
 app.post('/api/books/:id/borrow', async (req, res) => {
   const id = req.params.id;
 
   //  Validate ID format to prevent NoSQL injection
-  const mongoose = require('mongoose');
+  const mongoose = require('mongoose');//duplicated
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ error: 'Invalid book ID format' });
   }
